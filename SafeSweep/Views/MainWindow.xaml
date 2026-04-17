@@ -1,0 +1,341 @@
+<Window x:Class="SafeSweep.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:models="clr-namespace:SafeSweep.Models"
+        xmlns:viewModels="clr-namespace:SafeSweep.ViewModels"
+        mc:Ignorable="d"
+        Title="SafeSweep"
+        Width="1450"
+        Height="920"
+        MinWidth="1100"
+        MinHeight="700"
+        Background="#FFF4F1E8">
+  <Grid Margin="20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Padding="18"
+            Background="#FF1F3A5F"
+            CornerRadius="18">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel>
+          <TextBlock FontSize="28"
+                     FontWeight="SemiBold"
+                     Foreground="White"
+                     Text="SafeSweep" />
+          <TextBlock Margin="0,8,0,0"
+                     FontSize="14"
+                     Foreground="#FFE6EEF7"
+                     Text="Explain first, act second. Recoverability matters more than aggressive cleanup." />
+          <TextBlock Margin="0,10,0,0"
+                     FontSize="13"
+                     Foreground="#FFD7E3F4"
+                     Text="{Binding StatusText}" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center">
+          <CheckBox Margin="0,0,16,0"
+                    VerticalAlignment="Center"
+                    Foreground="White"
+                    IsChecked="{Binding PreferImmediateFreeSpace}"
+                    Content="Prefer direct free space if no non-system quarantine drive exists" />
+          <Button Margin="0,0,8,0"
+                  Padding="14,8"
+                  Command="{Binding QuickScanCommand}"
+                  Content="Quick Scan" />
+          <Button Margin="0,0,8,0"
+                  Padding="14,8"
+                  Command="{Binding DeepScanCommand}"
+                  Content="Deep Scan" />
+          <Button Margin="0,0,8,0"
+                  Padding="14,8"
+                  Command="{Binding PreviewPlanCommand}"
+                  Content="Preview Plan" />
+          <Button Padding="14,8"
+                  Command="{Binding ExecutePlanCommand}"
+                  Content="Execute Plan" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <ItemsControl Grid.Row="1"
+                  Margin="0,18,0,18"
+                  ItemsSource="{Binding SummaryCards}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <UniformGrid Columns="4" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate DataType="{x:Type viewModels:SummaryCardViewModel}">
+          <Border Margin="0,0,12,0"
+                  Padding="16"
+                  Background="#FFFDFBF7"
+                  BorderBrush="#FFE1D5BC"
+                  BorderThickness="1"
+                  CornerRadius="14">
+            <StackPanel>
+              <TextBlock FontSize="13"
+                         Foreground="#FF6A5A43"
+                         Text="{Binding Title}" />
+              <TextBlock Margin="0,6,0,0"
+                         FontSize="24"
+                         FontWeight="SemiBold"
+                         Foreground="#FF2E2A24"
+                         Text="{Binding Value}" />
+              <TextBlock Margin="0,8,0,0"
+                         Foreground="#FF6A5A43"
+                         TextWrapping="Wrap"
+                         Text="{Binding Subtitle}" />
+            </StackPanel>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TabControl Grid.Row="2"
+                Background="#FFFDFBF7"
+                BorderBrush="#FFE1D5BC"
+                BorderThickness="1">
+      <TabItem Header="Candidates">
+        <Grid Margin="16">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <DataGrid ItemsSource="{Binding Findings}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    IsReadOnly="False"
+                    HeadersVisibility="Column"
+                    GridLinesVisibility="Horizontal"
+                    RowBackground="#FFFFFCF8"
+                    AlternatingRowBackground="#FFF8F2E8">
+            <DataGrid.Columns>
+              <DataGridCheckBoxColumn Width="60"
+                                      Binding="{Binding IsSelected, Mode=TwoWay}"
+                                      Header="Pick" />
+              <DataGridTextColumn Width="140" Binding="{Binding TierLabel}" Header="Tier" />
+              <DataGridTextColumn Width="120" Binding="{Binding Finding.Category}" Header="Category" />
+              <DataGridTextColumn Width="120" Binding="{Binding SizeText}" Header="Size" />
+              <DataGridTextColumn Width="130" Binding="{Binding ActionText}" Header="Suggested" />
+              <DataGridTextColumn Width="*" Binding="{Binding Finding.Path}" Header="Path" />
+              <DataGridTextColumn Width="280" Binding="{Binding Finding.WhySuggested}" Header="Reason" />
+              <DataGridTextColumn Width="170" Binding="{Binding ModifiedText}" Header="Modified" />
+              <DataGridTemplateColumn Width="190" Header="Actions">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                      <Button Margin="0,0,8,0"
+                              Padding="10,4"
+                              Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}"
+                              Content="Open" />
+                      <Button Padding="10,4"
+                              Command="{Binding DataContext.IgnoreFindingCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}"
+                              Content="Ignore" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Border Grid.Row="1"
+                  Margin="0,14,0,0"
+                  Padding="14"
+                  Background="#FFF8F2E8"
+                  CornerRadius="12">
+            <TextBlock FontFamily="Consolas"
+                       TextWrapping="Wrap"
+                       Text="{Binding PlanOverview}" />
+          </Border>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Apps">
+        <Grid Margin="16">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <StackPanel Orientation="Horizontal">
+            <Button Padding="14,8"
+                    Command="{Binding RefreshAppsCommand}"
+                    Content="Refresh Apps" />
+            <TextBlock Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       Foreground="#FF6A5A43"
+                       Text="Only the official uninstall flow is used. Program folders are never deleted directly." />
+          </StackPanel>
+          <DataGrid Grid.Row="1"
+                    Margin="0,14,0,0"
+                    ItemsSource="{Binding InstalledApps}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    IsReadOnly="True"
+                    RowBackground="#FFFFFCF8"
+                    AlternatingRowBackground="#FFF8F2E8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Width="260" Binding="{Binding DisplayName}" Header="App" />
+              <DataGridTextColumn Width="160" Binding="{Binding Publisher}" Header="Publisher" />
+              <DataGridTextColumn Width="130" Binding="{Binding EstimatedSizeBytes}" Header="Size Bytes" />
+              <DataGridTextColumn Width="*" Binding="{Binding InstallLocation}" Header="Install Location" />
+              <DataGridTemplateColumn Width="190" Header="Actions">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate DataType="{x:Type models:InstalledAppRecord}">
+                    <StackPanel Orientation="Horizontal">
+                      <Button Margin="0,0,8,0"
+                              Padding="10,4"
+                              Command="{Binding DataContext.UninstallAppCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}"
+                              Content="Uninstall" />
+                      <Button Padding="10,4"
+                              Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}"
+                              Content="Open" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Recovery">
+        <Grid Margin="16">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <StackPanel Orientation="Horizontal">
+            <Button Padding="14,8"
+                    Command="{Binding RefreshHistoryCommand}"
+                    Content="Refresh History" />
+            <TextBlock Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       Foreground="#FF6A5A43"
+                       Text="Only quarantine-backed actions can be restored. Audit-only cleanup keeps logs, not file copies." />
+          </StackPanel>
+          <DataGrid Grid.Row="1"
+                    Margin="0,14,0,0"
+                    ItemsSource="{Binding ActionHistory}"
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    IsReadOnly="True"
+                    RowBackground="#FFFFFCF8"
+                    AlternatingRowBackground="#FFF8F2E8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Width="220" Binding="{Binding StartedAt}" Header="Started" />
+              <DataGridTextColumn Width="120" Binding="{Binding OperationType}" Header="Operation" />
+              <DataGridTextColumn Width="120" Binding="{Binding Status}" Header="Status" />
+              <DataGridTextColumn Width="130" Binding="{Binding BytesFreed}" Header="Freed Bytes" />
+              <DataGridTextColumn Width="*" Binding="{Binding Path}" Header="Path" />
+              <DataGridTextColumn Width="240" Binding="{Binding Summary}" Header="Summary" />
+              <DataGridTemplateColumn Width="180" Header="Actions">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate DataType="{x:Type models:ActionRecord}">
+                    <StackPanel Orientation="Horizontal">
+                      <Button Margin="0,0,8,0"
+                              Padding="10,4"
+                              Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}"
+                              Content="Open" />
+                      <Button Padding="10,4"
+                              Command="{Binding DataContext.RestoreActionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}"
+                              Content="Restore" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="Guidance">
+        <Grid Margin="16">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.3*" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <GroupBox Header="System Guidance Hub" Margin="0,0,12,0">
+            <ListBox ItemsSource="{Binding GuidanceItems}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:SystemGuidanceItem}">
+                  <Border Margin="0,0,0,10"
+                          Padding="12"
+                          Background="#FFFFFCF8"
+                          BorderBrush="#FFE1D5BC"
+                          BorderThickness="1"
+                          CornerRadius="10">
+                    <DockPanel>
+                      <Button DockPanel.Dock="Right"
+                              Padding="10,4"
+                              Command="{Binding DataContext.OpenGuidanceCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                              CommandParameter="{Binding}"
+                              Content="{Binding ActionLabel}" />
+                      <StackPanel Margin="0,0,12,0">
+                        <TextBlock FontSize="15"
+                                   FontWeight="SemiBold"
+                                   Text="{Binding Title}" />
+                        <TextBlock Margin="0,6,0,0"
+                                   Foreground="#FF6A5A43"
+                                   TextWrapping="Wrap"
+                                   Text="{Binding Description}" />
+                      </StackPanel>
+                    </DockPanel>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </GroupBox>
+
+          <GroupBox Grid.Column="1" Header="Fastest Growth">
+            <DataGrid ItemsSource="{Binding GrowthSummaries}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      IsReadOnly="True"
+                      RowBackground="#FFFFFCF8"
+                      AlternatingRowBackground="#FFF8F2E8">
+              <DataGrid.Columns>
+                <DataGridTextColumn Width="*" Binding="{Binding Source}" Header="Source" />
+                <DataGridTextColumn Width="120" Binding="{Binding CurrentBytes}" Header="Current" />
+                <DataGridTextColumn Width="120" Binding="{Binding PreviousBytes}" Header="Previous" />
+                <DataGridTextColumn Width="120" Binding="{Binding DeltaBytes}" Header="Delta" />
+              </DataGrid.Columns>
+            </DataGrid>
+          </GroupBox>
+        </Grid>
+      </TabItem>
+    </TabControl>
+
+    <Border Grid.Row="3"
+            Margin="0,18,0,0"
+            Padding="14"
+            Background="#FFFDFBF7"
+            BorderBrush="#FFE1D5BC"
+            BorderThickness="1"
+            CornerRadius="12">
+      <TextBlock Foreground="#FF6A5A43"
+                 Text="Behavior note: L1 items use audit-backed direct cleanup, L2 items prefer quarantine, and L0/L3 items only explain and route to official handling." />
+    </Border>
+  </Grid>
+</Window>
