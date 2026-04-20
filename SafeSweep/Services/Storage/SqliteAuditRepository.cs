@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Data.Sqlite;
 using SafeSweep.Models;
 
@@ -152,7 +153,7 @@ public sealed class SqliteAuditRepository : IAuditRepository
 
         await using var connection = CreateConnection();
         await connection.OpenAsync(cancellationToken);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        await using var transaction = (SqliteTransaction)await connection.BeginTransactionAsync(cancellationToken);
 
         await using (var sessionCommand = connection.CreateCommand())
         {
