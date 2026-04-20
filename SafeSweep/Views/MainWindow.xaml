@@ -6,7 +6,7 @@
         xmlns:models="clr-namespace:SafeSweep.Models"
         xmlns:viewModels="clr-namespace:SafeSweep.ViewModels"
         mc:Ignorable="d"
-        Title="SafeSweep"
+        Title="SafeSweep 空间治理助手"
         Width="1450"
         Height="920"
         MinWidth="1100"
@@ -36,7 +36,7 @@
           <TextBlock Margin="0,8,0,0"
                      FontSize="14"
                      Foreground="#FFE6EEF7"
-                     Text="Explain first, act second. Recoverability matters more than aggressive cleanup." />
+                     Text="先解释，再处理；可恢复，比清得更狠更重要。" />
           <TextBlock Margin="0,10,0,0"
                      FontSize="13"
                      Foreground="#FFD7E3F4"
@@ -51,22 +51,22 @@
                     VerticalAlignment="Center"
                     Foreground="White"
                     IsChecked="{Binding PreferImmediateFreeSpace}"
-                    Content="Prefer direct free space if no non-system quarantine drive exists" />
+                    Content="如果没有非系统盘隔离区，优先直接释放空间" />
           <Button Margin="0,0,8,0"
                   Padding="14,8"
                   Command="{Binding QuickScanCommand}"
-                  Content="Quick Scan" />
+                  Content="快速扫描" />
           <Button Margin="0,0,8,0"
                   Padding="14,8"
                   Command="{Binding DeepScanCommand}"
-                  Content="Deep Scan" />
+                  Content="深度扫描" />
           <Button Margin="0,0,8,0"
                   Padding="14,8"
                   Command="{Binding PreviewPlanCommand}"
-                  Content="Preview Plan" />
+                  Content="预演计划" />
           <Button Padding="14,8"
                   Command="{Binding ExecutePlanCommand}"
-                  Content="Execute Plan" />
+                  Content="执行计划" />
         </StackPanel>
       </Grid>
     </Border>
@@ -110,7 +110,7 @@
                 Background="#FFFDFBF7"
                 BorderBrush="#FFE1D5BC"
                 BorderThickness="1">
-      <TabItem Header="Candidates">
+      <TabItem Header="清理候选">
         <Grid Margin="16">
           <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -127,15 +127,15 @@
             <DataGrid.Columns>
               <DataGridCheckBoxColumn Width="60"
                                       Binding="{Binding IsSelected, Mode=TwoWay}"
-                                      Header="Pick" />
-              <DataGridTextColumn Width="140" Binding="{Binding TierLabel}" Header="Tier" />
-              <DataGridTextColumn Width="120" Binding="{Binding Finding.Category}" Header="Category" />
-              <DataGridTextColumn Width="120" Binding="{Binding SizeText}" Header="Size" />
-              <DataGridTextColumn Width="130" Binding="{Binding ActionText}" Header="Suggested" />
-              <DataGridTextColumn Width="*" Binding="{Binding Finding.Path}" Header="Path" />
-              <DataGridTextColumn Width="280" Binding="{Binding Finding.WhySuggested}" Header="Reason" />
-              <DataGridTextColumn Width="170" Binding="{Binding ModifiedText}" Header="Modified" />
-              <DataGridTemplateColumn Width="190" Header="Actions">
+                                      Header="选中" />
+              <DataGridTextColumn Width="150" Binding="{Binding TierLabel}" Header="风险层级" />
+              <DataGridTextColumn Width="130" Binding="{Binding CategoryLabel}" Header="分类" />
+              <DataGridTextColumn Width="120" Binding="{Binding SizeText}" Header="大小" />
+              <DataGridTextColumn Width="120" Binding="{Binding ActionText}" Header="建议动作" />
+              <DataGridTextColumn Width="*" Binding="{Binding Finding.Path}" Header="路径" />
+              <DataGridTextColumn Width="280" Binding="{Binding Finding.WhySuggested}" Header="建议原因" />
+              <DataGridTextColumn Width="170" Binding="{Binding ModifiedText}" Header="最后修改" />
+              <DataGridTemplateColumn Width="180" Header="操作">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -143,11 +143,11 @@
                               Padding="10,4"
                               Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                               CommandParameter="{Binding}"
-                              Content="Open" />
+                              Content="打开位置" />
                       <Button Padding="10,4"
                               Command="{Binding DataContext.IgnoreFindingCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                               CommandParameter="{Binding}"
-                              Content="Ignore" />
+                              Content="忽略" />
                     </StackPanel>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -167,7 +167,7 @@
         </Grid>
       </TabItem>
 
-      <TabItem Header="Apps">
+      <TabItem Header="软件卸载">
         <Grid Margin="16">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -176,11 +176,11 @@
           <StackPanel Orientation="Horizontal">
             <Button Padding="14,8"
                     Command="{Binding RefreshAppsCommand}"
-                    Content="Refresh Apps" />
+                    Content="刷新软件列表" />
             <TextBlock Margin="12,0,0,0"
                        VerticalAlignment="Center"
                        Foreground="#FF6A5A43"
-                       Text="Only the official uninstall flow is used. Program folders are never deleted directly." />
+                       Text="这里只会调用官方卸载入口，不会直接删除程序目录。" />
           </StackPanel>
           <DataGrid Grid.Row="1"
                     Margin="0,14,0,0"
@@ -191,23 +191,23 @@
                     RowBackground="#FFFFFCF8"
                     AlternatingRowBackground="#FFF8F2E8">
             <DataGrid.Columns>
-              <DataGridTextColumn Width="260" Binding="{Binding DisplayName}" Header="App" />
-              <DataGridTextColumn Width="160" Binding="{Binding Publisher}" Header="Publisher" />
-              <DataGridTextColumn Width="130" Binding="{Binding EstimatedSizeBytes}" Header="Size Bytes" />
-              <DataGridTextColumn Width="*" Binding="{Binding InstallLocation}" Header="Install Location" />
-              <DataGridTemplateColumn Width="190" Header="Actions">
+              <DataGridTextColumn Width="260" Binding="{Binding DisplayName}" Header="软件名称" />
+              <DataGridTextColumn Width="160" Binding="{Binding Publisher}" Header="发布者" />
+              <DataGridTextColumn Width="130" Binding="{Binding SizeText}" Header="估计大小" />
+              <DataGridTextColumn Width="*" Binding="{Binding InstallLocation}" Header="安装位置" />
+              <DataGridTemplateColumn Width="190" Header="操作">
                 <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate DataType="{x:Type models:InstalledAppRecord}">
+                  <DataTemplate DataType="{x:Type viewModels:InstalledAppItemViewModel}">
                     <StackPanel Orientation="Horizontal">
                       <Button Margin="0,0,8,0"
                               Padding="10,4"
                               Command="{Binding DataContext.UninstallAppCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                               CommandParameter="{Binding}"
-                              Content="Uninstall" />
+                              Content="启动卸载" />
                       <Button Padding="10,4"
                               Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                               CommandParameter="{Binding}"
-                              Content="Open" />
+                              Content="打开位置" />
                     </StackPanel>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -217,7 +217,7 @@
         </Grid>
       </TabItem>
 
-      <TabItem Header="Recovery">
+      <TabItem Header="恢复与审计">
         <Grid Margin="16">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -226,11 +226,11 @@
           <StackPanel Orientation="Horizontal">
             <Button Padding="14,8"
                     Command="{Binding RefreshHistoryCommand}"
-                    Content="Refresh History" />
+                    Content="刷新记录" />
             <TextBlock Margin="12,0,0,0"
                        VerticalAlignment="Center"
                        Foreground="#FF6A5A43"
-                       Text="Only quarantine-backed actions can be restored. Audit-only cleanup keeps logs, not file copies." />
+                       Text="只有进入隔离区的动作支持恢复；审计型清理只保留记录，不保存文件副本。" />
           </StackPanel>
           <DataGrid Grid.Row="1"
                     Margin="0,14,0,0"
@@ -241,25 +241,25 @@
                     RowBackground="#FFFFFCF8"
                     AlternatingRowBackground="#FFF8F2E8">
             <DataGrid.Columns>
-              <DataGridTextColumn Width="220" Binding="{Binding StartedAt}" Header="Started" />
-              <DataGridTextColumn Width="120" Binding="{Binding OperationType}" Header="Operation" />
-              <DataGridTextColumn Width="120" Binding="{Binding Status}" Header="Status" />
-              <DataGridTextColumn Width="130" Binding="{Binding BytesFreed}" Header="Freed Bytes" />
-              <DataGridTextColumn Width="*" Binding="{Binding Path}" Header="Path" />
-              <DataGridTextColumn Width="240" Binding="{Binding Summary}" Header="Summary" />
-              <DataGridTemplateColumn Width="180" Header="Actions">
+              <DataGridTextColumn Width="200" Binding="{Binding StartedText}" Header="开始时间" />
+              <DataGridTextColumn Width="120" Binding="{Binding OperationText}" Header="动作" />
+              <DataGridTextColumn Width="110" Binding="{Binding StatusText}" Header="状态" />
+              <DataGridTextColumn Width="120" Binding="{Binding FreedText}" Header="释放空间" />
+              <DataGridTextColumn Width="*" Binding="{Binding Path}" Header="路径" />
+              <DataGridTextColumn Width="240" Binding="{Binding Summary}" Header="说明" />
+              <DataGridTemplateColumn Width="180" Header="操作">
                 <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate DataType="{x:Type models:ActionRecord}">
+                  <DataTemplate DataType="{x:Type viewModels:ActionRecordItemViewModel}">
                     <StackPanel Orientation="Horizontal">
                       <Button Margin="0,0,8,0"
                               Padding="10,4"
                               Command="{Binding DataContext.OpenPathCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                               CommandParameter="{Binding}"
-                              Content="Open" />
+                              Content="打开位置" />
                       <Button Padding="10,4"
                               Command="{Binding DataContext.RestoreActionCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                               CommandParameter="{Binding}"
-                              Content="Restore" />
+                              Content="恢复" />
                     </StackPanel>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
@@ -269,14 +269,14 @@
         </Grid>
       </TabItem>
 
-      <TabItem Header="Guidance">
+      <TabItem Header="官方入口与趋势">
         <Grid Margin="16">
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1.3*" />
             <ColumnDefinition Width="*" />
           </Grid.ColumnDefinitions>
 
-          <GroupBox Header="System Guidance Hub" Margin="0,0,12,0">
+          <GroupBox Header="系统官方处理入口" Margin="0,0,12,0">
             <ListBox ItemsSource="{Binding GuidanceItems}">
               <ListBox.ItemTemplate>
                 <DataTemplate DataType="{x:Type models:SystemGuidanceItem}">
@@ -308,7 +308,7 @@
             </ListBox>
           </GroupBox>
 
-          <GroupBox Grid.Column="1" Header="Fastest Growth">
+          <GroupBox Grid.Column="1" Header="增长最快来源">
             <DataGrid ItemsSource="{Binding GrowthSummaries}"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
@@ -316,10 +316,10 @@
                       RowBackground="#FFFFFCF8"
                       AlternatingRowBackground="#FFF8F2E8">
               <DataGrid.Columns>
-                <DataGridTextColumn Width="*" Binding="{Binding Source}" Header="Source" />
-                <DataGridTextColumn Width="120" Binding="{Binding CurrentBytes}" Header="Current" />
-                <DataGridTextColumn Width="120" Binding="{Binding PreviousBytes}" Header="Previous" />
-                <DataGridTextColumn Width="120" Binding="{Binding DeltaBytes}" Header="Delta" />
+                <DataGridTextColumn Width="*" Binding="{Binding SourceText}" Header="来源" />
+                <DataGridTextColumn Width="120" Binding="{Binding CurrentText}" Header="当前" />
+                <DataGridTextColumn Width="120" Binding="{Binding PreviousText}" Header="上次" />
+                <DataGridTextColumn Width="120" Binding="{Binding DeltaText}" Header="变化" />
               </DataGrid.Columns>
             </DataGrid>
           </GroupBox>
@@ -335,7 +335,7 @@
             BorderThickness="1"
             CornerRadius="12">
       <TextBlock Foreground="#FF6A5A43"
-                 Text="Behavior note: L1 items use audit-backed direct cleanup, L2 items prefer quarantine, and L0/L3 items only explain and route to official handling." />
+                 Text="说明：L1 项默认直接清理并保留审计记录；L2 项优先进入隔离区，便于恢复；L0/L3 项只做解释和引导，不直接删除。" />
     </Border>
   </Grid>
 </Window>

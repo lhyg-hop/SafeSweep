@@ -74,7 +74,7 @@ public sealed class DefaultRuleEvaluator : IRuleEvaluator
                 RiskTier.L3Guided,
                 Recoverability.None,
                 ActionPolicy.None,
-                "Indirect or cloud-managed targets are never processed automatically.",
+                "符号链接、挂载点或云占位文件默认不参与自动处理。",
                 true);
         }
 
@@ -145,47 +145,47 @@ public sealed class DefaultRuleEvaluator : IRuleEvaluator
         if (rule.RiskTier == RiskTier.L0ReadOnly)
         {
             return (
-                $"This is a system-managed storage area currently using about {sizeText}.",
-                "Windows may expand it as updates, hibernation, restore points, or virtual memory accumulate.",
-                "SafeSweep only explains this item and routes you to an official system entry point.",
-                "Official handling may reduce rollback options or change startup, update, or restore behavior.",
-                "SafeSweep does not directly restore this class of item. Recovery depends on Windows itself.",
-                "Official cleanup can still fail when elevation is missing or the system is actively using the storage.");
+                $"这是系统管理的空间占用项，当前约占 {sizeText}。",
+                "它通常会随着 Windows 更新、休眠、还原点或虚拟内存的变化而增减。",
+                "SafeSweep 只负责解释原因，并引导你使用系统官方入口处理。",
+                "如果通过官方方式处理，可能影响回滚能力、系统启动速度或更新恢复能力。",
+                "此类内容不由 SafeSweep 直接恢复，恢复能力依赖 Windows 自身机制。",
+                "如果缺少管理员权限，或系统当前正在使用相关空间，官方处理也可能失败。");
         }
 
         if (rule.RiskTier == RiskTier.L1SafeCleanup)
         {
             return (
-                $"This is a known temporary or rebuildable location currently using about {sizeText}.",
-                "Applications and Windows often recreate these files automatically, but they can grow for a long time if left alone.",
-                "The path matched SafeSweep allow-list rules for deterministic cleanup.",
-                "After cleanup, the related app may rebuild caches and feel slightly slower on first launch.",
-                "This action keeps audit records, but it does not promise full file-by-file restore.",
+                $"这是已知的临时文件或可重建缓存，当前约占 {sizeText}。",
+                "系统或应用通常会重新生成这类文件，但长期不清理时它们容易持续膨胀。",
+                "该路径命中了 SafeSweep 的白名单规则，属于确定性较高的安全清理项。",
+                "清理后，相关应用首次启动或访问时可能需要重建缓存，因此会稍慢一些。",
+                "这类动作会保留审计记录，但不承诺逐文件恢复。",
                 observation.IsLocked
-                    ? "Some files appear locked, so execution may skip a subset of this location."
-                    : "Execution may still partially fail if permissions change or files are suddenly in use.");
+                    ? "其中一部分文件当前可能被占用，执行时可能会被跳过。"
+                    : "如果权限发生变化，或文件在执行时突然被占用，可能会出现部分失败。");
         }
 
         if (rule.RiskTier == RiskTier.L2Recoverable)
         {
             return (
-                $"This is a large user-controlled item currently using about {sizeText}.",
-                "It is not usually required by Windows itself, but it may still matter to the user or a specific app workflow.",
-                "SafeSweep suggests review first and prefers a recoverable flow instead of silent permanent deletion.",
-                "Handling it may affect offline installers, project indexes, chat attachments, or local media availability.",
-                "SafeSweep prefers moving it to a non-system-drive quarantine root when one is available.",
+                $"这是体积较大的用户控制内容，当前约占 {sizeText}。",
+                "它通常不是 Windows 本身必须的内容，但仍可能影响你的安装包、素材、项目缓存或聊天附件。",
+                "SafeSweep 会先建议人工确认，并优先采用可恢复流程，而不是直接永久删除。",
+                "处理后，离线安装、工程索引、本地媒体或聊天附件可用性可能受到影响。",
+                "如果有可用的非系统盘，SafeSweep 会优先把它移到隔离区，便于之后恢复。",
                 observation.IsLocked
-                    ? "The item seems to be in use, so the app related to it may need to be closed first."
-                    : "Quarantine or restore can still fail when the target volume lacks space or a path conflict appears.");
+                    ? "该项当前似乎被某个程序占用，通常需要先关闭相关应用。"
+                    : "如果目标磁盘空间不足，或恢复路径发生冲突，隔离和恢复仍可能失败。");
         }
 
         return (
-            "This item should be handled by an official tool or a manual review step.",
-            "Direct deletion is not appropriate for this category.",
-            "SafeSweep only explains and routes the user, instead of touching the data directly.",
-            "Improper handling may impact application behavior, services, or data integrity.",
-            "SafeSweep does not provide direct restore for this item.",
-            "Automatic handling must stay blocked when the target is protected, indirect, or cloud-managed.");
+            "这类内容更适合通过官方工具或人工确认后处理。",
+            "对它直接删除或移动并不安全。",
+            "SafeSweep 只负责解释、定位和引导，不会直接碰它。",
+            "如果处理方式不当，可能影响应用运行、系统服务或数据完整性。",
+            "SafeSweep 默认不会为这类内容提供直接恢复。",
+            "只要路径属于受保护位置、间接路径或云占位对象，自动处理就必须保持阻止状态。");
     }
 
     private static IReadOnlyList<RuleDefinition> CreateRules()
@@ -199,7 +199,7 @@ public sealed class DefaultRuleEvaluator : IRuleEvaluator
                 RiskTier.L0ReadOnly,
                 Recoverability.None,
                 ActionPolicy.OfficialTool,
-                "System-managed storage should only be handled via official tools.",
+                "系统级空间只允许通过官方方式处理。",
                 true),
             new RuleDefinition(
                 "safe-temp",
@@ -208,7 +208,7 @@ public sealed class DefaultRuleEvaluator : IRuleEvaluator
                 RiskTier.L1SafeCleanup,
                 Recoverability.AuditOnly,
                 ActionPolicy.DirectDelete,
-                "Known temporary or rebuildable cache path.",
+                "已知的临时文件或可重建缓存路径。",
                 true),
             new RuleDefinition(
                 "user-hotspot",
@@ -217,7 +217,7 @@ public sealed class DefaultRuleEvaluator : IRuleEvaluator
                 RiskTier.L2Recoverable,
                 Recoverability.Quarantine,
                 ActionPolicy.Quarantine,
-                "Large user-controlled content should be reviewed and made recoverable first.",
+                "大体积用户内容需要先确认，并优先保留可恢复能力。",
                 true),
             new RuleDefinition(
                 "guided-only",
@@ -226,7 +226,7 @@ public sealed class DefaultRuleEvaluator : IRuleEvaluator
                 RiskTier.L3Guided,
                 Recoverability.None,
                 ActionPolicy.OfficialTool,
-                "Protected paths must be guided only.",
+                "受保护路径只允许解释和引导。",
                 true)
         ];
     }

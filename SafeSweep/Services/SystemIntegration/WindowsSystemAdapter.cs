@@ -10,11 +10,11 @@ public sealed class WindowsSystemAdapter : ISystemAdapter
     {
         return
         [
-            new SystemGuidanceItem("storage-sense", "Storage Sense", "Open Windows storage cleanup guidance and temporary file controls.", "Open Settings", "ms-settings:storagesense"),
-            new SystemGuidanceItem("apps-features", "Apps & Features", "Use the official uninstall flow for large applications.", "Open Settings", "ms-settings:appsfeatures"),
-            new SystemGuidanceItem("windows-update", "Windows Update", "Review update downloads and system cleanup-related settings.", "Open Settings", "ms-settings:windowsupdate"),
-            new SystemGuidanceItem("disk-cleanup", "Disk Cleanup", "Open the classic Windows disk cleanup utility.", "Run Tool", "cleanmgr.exe"),
-            new SystemGuidanceItem("system-protection", "System Protection", "Inspect restore point storage and protection settings.", "Open Panel", "SystemPropertiesProtection.exe")
+            new SystemGuidanceItem("storage-sense", "存储感知", "打开 Windows 的存储清理建议和临时文件设置。", "打开设置", "ms-settings:storagesense"),
+            new SystemGuidanceItem("apps-features", "应用和功能", "通过系统官方入口卸载占空间较大的软件。", "打开设置", "ms-settings:appsfeatures"),
+            new SystemGuidanceItem("windows-update", "Windows 更新", "检查更新下载、清理相关设置和系统更新状态。", "打开设置", "ms-settings:windowsupdate"),
+            new SystemGuidanceItem("disk-cleanup", "磁盘清理", "打开 Windows 经典磁盘清理工具。", "运行工具", "cleanmgr.exe"),
+            new SystemGuidanceItem("system-protection", "系统保护", "查看系统还原点占用和系统保护设置。", "打开面板", "SystemPropertiesProtection.exe")
         ];
     }
 

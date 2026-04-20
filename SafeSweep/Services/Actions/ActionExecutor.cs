@@ -62,7 +62,7 @@ public sealed class ActionExecutor : IActionExecutor
                         ActionRecordStatus.Skipped,
                         null,
                         false,
-                        "Item was skipped because it is not part of the automatic executor.")
+                        "该项目不在自动执行范围内，已跳过。")
                 };
             }
             catch (Exception ex)
@@ -97,7 +97,7 @@ public sealed class ActionExecutor : IActionExecutor
     {
         if (!record.CanRestore || string.IsNullOrWhiteSpace(record.QuarantinePath) || string.IsNullOrWhiteSpace(record.OriginalPath))
         {
-            throw new InvalidOperationException("This action record cannot be restored.");
+            throw new InvalidOperationException("当前记录不支持恢复。");
         }
 
         await _quarantineStore.RestoreAsync(record.QuarantinePath, record.OriginalPath, conflictPolicy, cancellationToken);
@@ -106,7 +106,7 @@ public sealed class ActionExecutor : IActionExecutor
         {
             EndedAt = DateTimeOffset.UtcNow,
             Status = ActionRecordStatus.Restored,
-            Summary = "Item restored from quarantine."
+            Summary = "已从隔离区恢复。"
         };
 
         await _repository.SaveActionRecordAsync(restored, cancellationToken);
@@ -138,7 +138,7 @@ public sealed class ActionExecutor : IActionExecutor
             ActionRecordStatus.Completed,
             null,
             false,
-            $"Cleaned {item.Category}.");
+            $"已清理：{ToDisplayCategory(item.Category)}。");
     }
 
     private async Task<ActionRecord> ExecuteQuarantineAsync(
@@ -149,8 +149,8 @@ public sealed class ActionExecutor : IActionExecutor
     {
         var quarantinePath = await _quarantineStore.MoveToQuarantineAsync(item.Path, cancellationToken);
         var summary = item.CanActuallyFreeSystemDrive
-            ? "Moved to quarantine and released system drive space."
-            : "Moved to quarantine, but the quarantine root is still on the system drive.";
+            ? "已移入隔离区，并释放系统盘空间。"
+            : "已移入隔离区，但隔离区仍位于系统盘。";
 
         return new ActionRecord(
             Guid.NewGuid().ToString("N"),
@@ -172,12 +172,12 @@ public sealed class ActionExecutor : IActionExecutor
     {
         if (item.ActionPolicy == ActionPolicy.None)
         {
-            throw new InvalidOperationException("Blocked plan item cannot be executed.");
+            throw new InvalidOperationException("被阻止的计划项不能直接执行。");
         }
 
         if (PathSafety.IsProtectedPath(item.Path) && !ProtectedCleanupCategories.Contains(item.Category))
         {
-            throw new UnauthorizedAccessException("Protected path blocked by executor.");
+            throw new UnauthorizedAccessException("该路径属于受保护位置，执行器已阻止操作。");
         }
     }
 
@@ -208,7 +208,7 @@ public sealed class ActionExecutor : IActionExecutor
 
                 if (result != 0)
                 {
-                    throw new IOException($"SHEmptyRecycleBin failed with code {result}.");
+                    throw new IOException($"清空回收站失败，系统返回代码：{result}。");
                 }
 
                 return 0L;
@@ -294,4 +294,24 @@ public sealed class ActionExecutor : IActionExecutor
 
     [DllImport("Shell32.dll")]
     private static extern uint SHEmptyRecycleBin(IntPtr hwnd, string? pszRootPath, uint dwFlags);
+
+    private static string ToDisplayCategory(string category) => category switch
+    {
+        "UserTemp" => "用户临时文件",
+        "SystemTemp" => "系统临时文件",
+        "ThumbnailCache" => "缩略图缓存",
+        "BrowserCache" => "浏览器缓存",
+        "RecycleBin" => "回收站",
+        "Downloads" => "下载目录",
+        "Desktop" => "桌面",
+        "Videos" => "视频",
+        "Documents" => "文档",
+        "DiskImage" => "磁盘镜像",
+        "Archive" => "压缩包",
+        "Installer" => "安装包",
+        "VirtualDisk" => "虚拟磁盘",
+        "Database" => "数据库文件",
+        "LargeFile" => "大文件",
+        _ => category
+    };
 }

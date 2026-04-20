@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
     <LangVersion>latest</LangVersion>
     <AssemblyName>SafeSweep</AssemblyName>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <PublishReadyToRun>true</PublishReadyToRun>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>

@@ -61,7 +61,7 @@ public sealed class QuarantineStore : IQuarantineStore
             return targetPath;
         }
 
-        throw new FileNotFoundException("Source path no longer exists.", sourcePath);
+        throw new FileNotFoundException("源路径已不存在。", sourcePath);
     }
 
     public async Task RestoreAsync(
@@ -79,7 +79,7 @@ public sealed class QuarantineStore : IQuarantineStore
         var restorePath = conflictPolicy switch
         {
             ConflictPolicy.Skip when File.Exists(originalPath) || Directory.Exists(originalPath) =>
-                throw new IOException("Original path already exists."),
+                throw new IOException("原路径已存在同名内容。"),
             ConflictPolicy.Rename when File.Exists(originalPath) || Directory.Exists(originalPath) =>
                 BuildRenamedPath(originalPath),
             _ => originalPath
@@ -109,7 +109,7 @@ public sealed class QuarantineStore : IQuarantineStore
                 return;
             }
 
-            throw new FileNotFoundException("Quarantine item not found.", quarantinePath);
+            throw new FileNotFoundException("隔离区项目不存在。", quarantinePath);
         }, cancellationToken);
     }
 

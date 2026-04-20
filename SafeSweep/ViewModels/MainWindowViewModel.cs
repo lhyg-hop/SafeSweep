@@ -21,8 +21,8 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly ISystemAdapter _systemAdapter;
     private readonly IInstalledAppProvider _installedAppProvider;
 
-    private string _statusText = "Ready. Start with a quick scan.";
-    private string _planOverview = "No preview yet.";
+    private string _statusText = "准备就绪。建议先执行快速扫描。";
+    private string _planOverview = "还没有生成预演。";
     private bool _preferImmediateFreeSpace;
     private bool _isBusy;
     private ExecutionPlan? _currentPlan;
@@ -48,10 +48,10 @@ public sealed class MainWindowViewModel : ObservableObject
 
         SummaryCards =
         [
-            new SummaryCardViewModel { Title = "Safe To Release", Value = "-", Subtitle = "Waiting for scan" },
-            new SummaryCardViewModel { Title = "Review Needed", Value = "-", Subtitle = "Waiting for scan" },
-            new SummaryCardViewModel { Title = "Official Tools", Value = "-", Subtitle = "Waiting for scan" },
-            new SummaryCardViewModel { Title = "Fastest Growth", Value = "-", Subtitle = "Needs at least two scans" }
+            new SummaryCardViewModel { Title = "立即安全释放", Value = "-", Subtitle = "等待扫描" },
+            new SummaryCardViewModel { Title = "建议你确认", Value = "-", Subtitle = "等待扫描" },
+            new SummaryCardViewModel { Title = "官方方式处理", Value = "-", Subtitle = "等待扫描" },
+            new SummaryCardViewModel { Title = "增长最快来源", Value = "-", Subtitle = "至少需要两次扫描" }
         ];
 
         GuidanceItems = new ObservableCollection<SystemGuidanceItem>(_systemAdapter.GetGuidanceItems());
@@ -77,10 +77,10 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<SummaryCardViewModel> SummaryCards { get; }
     public ObservableCollection<FindingItemViewModel> Findings { get; }
-    public ObservableCollection<InstalledAppRecord> InstalledApps { get; }
-    public ObservableCollection<ActionRecord> ActionHistory { get; }
+    public ObservableCollection<InstalledAppItemViewModel> InstalledApps { get; }
+    public ObservableCollection<ActionRecordItemViewModel> ActionHistory { get; }
     public ObservableCollection<SystemGuidanceItem> GuidanceItems { get; }
-    public ObservableCollection<ScanSnapshotSummary> GrowthSummaries { get; }
+    public ObservableCollection<GrowthSummaryItemViewModel> GrowthSummaries { get; }
 
     public AsyncRelayCommand QuickScanCommand { get; }
     public AsyncRelayCommand DeepScanCommand { get; }
@@ -148,8 +148,8 @@ public sealed class MainWindowViewModel : ObservableObject
         IsBusy = true;
         Findings.Clear();
         CurrentPlan = null;
-        PlanOverview = "Build a preview after the scan finishes.";
-        StatusText = mode == ScanMode.Quick ? "Running quick scan..." : "Running deep scan...";
+        PlanOverview = "扫描完成后可以生成预演，先看风险再决定是否执行。";
+        StatusText = mode == ScanMode.Quick ? "正在执行快速扫描..." : "正在执行深度扫描...";
 
         var collectedFindings = new List<ScanFinding>();
 
@@ -174,7 +174,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
                 Findings.Add(item);
                 collectedFindings.Add(finding);
-                StatusText = $"Found {Findings.Count} candidate items...";
+                StatusText = $"已发现 {Findings.Count} 个候选项...";
             }
 
             var sessionId = Guid.NewGuid().ToString("N");
@@ -183,8 +183,8 @@ public sealed class MainWindowViewModel : ObservableObject
             UpdateSummaryCards();
 
             StatusText = mode == ScanMode.Quick
-                ? $"Quick scan complete. {Findings.Count} candidates found."
-                : $"Deep scan complete. {Findings.Count} candidates found.";
+                ? $"快速扫描完成，共发现 {Findings.Count} 个候选项。"
+                : $"深度扫描完成，共发现 {Findings.Count} 个候选项。";
         }
         finally
         {
@@ -206,16 +206,16 @@ public sealed class MainWindowViewModel : ObservableObject
             var warnings = CurrentPlan.Items.Sum(static item => item.Warnings.Count);
 
             var builder = new StringBuilder();
-            builder.AppendLine($"Items: {CurrentPlan.Items.Count}");
-            builder.AppendLine($"Executable: {executableCount}");
-            builder.AppendLine($"Blocked: {blockedCount}");
-            builder.AppendLine($"Estimated release: {ByteSizeFormatter.Format(CurrentPlan.EstimatedFreedBytes)}");
-            builder.AppendLine($"Needs elevation: {(CurrentPlan.RequiresElevation ? "Yes" : "No")}");
-            builder.AppendLine($"Quarantine root: {_quarantineStore.GetPreferredQuarantineRoot(Environment.SystemDirectory) ?? "Not found"}");
-            builder.AppendLine($"Warnings: {warnings}");
+            builder.AppendLine($"计划项：{CurrentPlan.Items.Count}");
+            builder.AppendLine($"可执行：{executableCount}");
+            builder.AppendLine($"被阻止：{blockedCount}");
+            builder.AppendLine($"预计释放：{ByteSizeFormatter.Format(CurrentPlan.EstimatedFreedBytes)}");
+            builder.AppendLine($"需要管理员权限：{(CurrentPlan.RequiresElevation ? "是" : "否")}");
+            builder.AppendLine($"隔离区位置：{_quarantineStore.GetPreferredQuarantineRoot(Environment.SystemDirectory) ?? "未找到可用位置"}");
+            builder.AppendLine($"警告数：{warnings}");
             PlanOverview = builder.ToString().TrimEnd();
 
-            StatusText = "Preview complete. Check release estimates, rollback mode, warnings, and blocked items before executing.";
+            StatusText = "预演完成。请先核对释放空间、恢复方式、警告项和被阻止项，再决定是否执行。";
         }
         finally
         {
@@ -250,7 +250,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
             var succeeded = results.Count(static item => item.Status == ActionRecordStatus.Completed);
             var failed = results.Count(static item => item.Status == ActionRecordStatus.Failed);
-            StatusText = $"Execution complete. Succeeded: {succeeded}. Failed: {failed}.";
+            StatusText = $"执行完成。成功 {succeeded} 项，失败 {failed} 项。";
         }
         finally
         {
@@ -263,7 +263,7 @@ public sealed class MainWindowViewModel : ObservableObject
         InstalledApps.Clear();
         foreach (var app in await _installedAppProvider.GetInstalledAppsAsync())
         {
-            InstalledApps.Add(app);
+            InstalledApps.Add(new InstalledAppItemViewModel(app));
         }
     }
 
@@ -272,7 +272,7 @@ public sealed class MainWindowViewModel : ObservableObject
         ActionHistory.Clear();
         foreach (var item in await _repository.GetActionRecordsAsync())
         {
-            ActionHistory.Add(item);
+            ActionHistory.Add(new ActionRecordItemViewModel(item));
         }
     }
 
@@ -281,7 +281,7 @@ public sealed class MainWindowViewModel : ObservableObject
         GrowthSummaries.Clear();
         foreach (var summary in await _repository.GetGrowthSummariesAsync())
         {
-            GrowthSummaries.Add(summary);
+            GrowthSummaries.Add(new GrowthSummaryItemViewModel(summary));
         }
 
         UpdateSummaryCards();
@@ -294,11 +294,11 @@ public sealed class MainWindowViewModel : ObservableObject
             case FindingItemViewModel findingItem:
                 await _systemAdapter.OpenPathAsync(findingItem.Finding.Path);
                 break;
-            case InstalledAppRecord app when !string.IsNullOrWhiteSpace(app.InstallLocation):
-                await _systemAdapter.OpenPathAsync(app.InstallLocation!);
+            case InstalledAppItemViewModel appItem when !string.IsNullOrWhiteSpace(appItem.App.InstallLocation):
+                await _systemAdapter.OpenPathAsync(appItem.App.InstallLocation!);
                 break;
-            case ActionRecord record when !string.IsNullOrWhiteSpace(record.OriginalPath):
-                await _systemAdapter.OpenPathAsync(record.OriginalPath!);
+            case ActionRecordItemViewModel actionItem when !string.IsNullOrWhiteSpace(actionItem.Record.OriginalPath):
+                await _systemAdapter.OpenPathAsync(actionItem.Record.OriginalPath!);
                 break;
         }
     }
@@ -313,7 +313,7 @@ public sealed class MainWindowViewModel : ObservableObject
         await _repository.AddIgnoredPathAsync(findingItem.Finding.Path);
         Findings.Remove(findingItem);
         UpdateSummaryCards();
-        StatusText = "Item added to ignore list.";
+        StatusText = "已加入忽略列表。";
     }
 
     private async Task OpenGuidanceAsync(object? parameter)
@@ -326,16 +326,16 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private async Task UninstallAppAsync(object? parameter)
     {
-        if (parameter is InstalledAppRecord app)
+        if (parameter is InstalledAppItemViewModel app)
         {
-            await _installedAppProvider.LaunchUninstallerAsync(app);
-            StatusText = $"Launched the official uninstall entry for {app.DisplayName}.";
+            await _installedAppProvider.LaunchUninstallerAsync(app.App);
+            StatusText = $"已启动 {app.DisplayName} 的官方卸载入口。";
         }
     }
 
     private async Task RestoreActionAsync(object? parameter)
     {
-        if (parameter is not ActionRecord record || !record.CanRestore)
+        if (parameter is not ActionRecordItemViewModel actionItem || !actionItem.Record.CanRestore)
         {
             return;
         }
@@ -344,9 +344,9 @@ public sealed class MainWindowViewModel : ObservableObject
 
         try
         {
-            await _executor.RestoreAsync(record, ConflictPolicy.Rename);
+            await _executor.RestoreAsync(actionItem.Record, ConflictPolicy.Rename);
             await LoadHistoryAsync();
-            StatusText = "Restore complete. If the original path already existed, the restored item was renamed.";
+            StatusText = "恢复完成。如果原路径已有同名文件，已自动改名避免覆盖。";
         }
         finally
         {
@@ -365,18 +365,18 @@ public sealed class MainWindowViewModel : ObservableObject
         var officialBytes = Findings
             .Where(static item => item.Finding.RiskTier is RiskTier.L0ReadOnly or RiskTier.L3Guided)
             .Sum(static item => item.Finding.Size);
-        var fastestGrowth = GrowthSummaries.OrderByDescending(static item => item.DeltaBytes).FirstOrDefault();
+        var fastestGrowth = GrowthSummaries.OrderByDescending(item => item.Summary.DeltaBytes).FirstOrDefault();
 
         SummaryCards[0].Value = ByteSizeFormatter.Format(safeCleanupBytes);
-        SummaryCards[0].Subtitle = "Deterministic cleanup under allow-list rules";
+        SummaryCards[0].Subtitle = "白名单规则下可直接清理的内容";
         SummaryCards[1].Value = ByteSizeFormatter.Format(reviewBytes);
-        SummaryCards[1].Subtitle = "Recoverable candidates that still need confirmation";
+        SummaryCards[1].Subtitle = "建议人工确认，默认优先保留可恢复能力";
         SummaryCards[2].Value = ByteSizeFormatter.Format(officialBytes);
-        SummaryCards[2].Subtitle = "Explain and route, never delete directly";
-        SummaryCards[3].Value = fastestGrowth is null ? "-" : fastestGrowth.Source;
+        SummaryCards[2].Subtitle = "只解释和引导，不直接删除";
+        SummaryCards[3].Value = fastestGrowth is null ? "-" : fastestGrowth.SourceText;
         SummaryCards[3].Subtitle = fastestGrowth is null
-            ? "Needs at least two scans"
-            : $"Growth since last scan: {ByteSizeFormatter.Format(fastestGrowth.DeltaBytes)}";
+            ? "至少需要两次扫描"
+            : $"较上次增长：{ByteSizeFormatter.Format(fastestGrowth.Summary.DeltaBytes)}";
     }
 
     private void RefreshCommandStates()
